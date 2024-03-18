@@ -36,7 +36,7 @@ def get_car_info_message(car_data):
     )
 
     if car_data.get('date_enter', False):
-        text += f"Добавлена: \t{car_data.get('add_at', '')}"
+        text += f"Добавлена: \t{car_data.get('date_enter', '')}"
 
     return text
 

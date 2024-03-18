@@ -10,3 +10,4 @@ class CarListCallbackFactory(CallbackData, prefix="car"):
     action: str
     car_hash: str
     page: int
+    field: str

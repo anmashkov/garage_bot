@@ -7,7 +7,7 @@ from aiogram.fsm.context import FSMContext
 from src.conifg import car_info_tpl, required_fields
 from src.callback_fabs import CarInfoCallbackFactory, CarListCallbackFactory
 from src.handlers import cmd_list
-from src.keyboards import car_info, kb_car_list, car_fields_edit, car_info_edit, delete_car
+from src.keyboards import kb_car_info, kb_car_list, car_fields_edit, car_info_edit, delete_car, car_data_edit
 from src.service import get_car_info_message, get_car_list
 from src.states import CarInfoCreate
 
@@ -37,7 +37,6 @@ async def choosing_char_race_fab(
             data = await state.get_data()
             car = data.get('car_info', {})
             text_message = f"Данные о машине:\n{get_car_info_message(car)}"
-            await state.update_data(await_field=callback_data.field)
             await callback.message.edit_text(text_message, reply_markup=car_fields_edit(car))
 
         case 'save_car':
@@ -96,7 +95,6 @@ async def choosing_char_race_fab(
 
         case 'view_car':
             data = await state.get_data()
-
             car_list = data.get('car_list', {})
             car = car_list.get(callback_data.car_hash, False)
 
@@ -108,7 +106,25 @@ async def choosing_char_race_fab(
             text_message = get_car_info_message(car)
 
             await callback.message.edit_text(f'Ифнормация о машине: {text_message}',
-                                             reply_markup=car_info(callback_data.car_hash, callback_data.page))
+                                             reply_markup=kb_car_info(callback_data.car_hash, callback_data.page))
+
+        case 'edit_field':
+            await state.set_state(CarInfoCreate.await_new_data)
+            await state.update_data(await_field=callback_data.field)
+            await state.update_data(car_hash=callback_data.car_hash)
+            await callback.message.answer('Введите новое значение: ')
+
+        case 'edit_fields':
+            data = await state.get_data()
+            car_list = data.get('car_list', {})
+            car = car_list.get(callback_data.car_hash, {})
+
+            if 'date_exit' not in car.keys():
+                car['date_exit'] = 'Нет данных'
+
+            text_message = f"Ифнормация о машине:\n{get_car_info_message(car)}"
+            await callback.message.edit_text(text_message, reply_markup=car_data_edit(car, callback_data.car_hash, callback_data.page))
+
         case 'delete_car':
             await callback.message.edit_text(f'Вы уверены?', reply_markup=delete_car(callback_data.car_hash, callback_data.page))
         case 'confirm_delete':
